@@ -9,9 +9,9 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
-<table class="table">
+<table class="table sorting" id="pages">
     <thead>
-        <tr>
+        <tr class="home">
             <th>
                 @Html.DisplayNameFor(model => model.Title) @*// if use a [Display(Name = "something")] on a property of a model or table (Page model in this case) this code is to display it*@
             </th>
@@ -23,7 +23,7 @@
     </thead>
     <tbody>
 @foreach (var item in Model) {
-        <tr>
+        <tr id="id_@item.Id" class="@item.Slug">
             <td>
                 @item.Title
             </td>
@@ -42,3 +42,22 @@
 }
     </tbody>
 </table>
+
+@section Scripts {
+    <script>
+        @* s specific id for the whole table for specificity
+        id="id_@item.Id" this is needed in the sortable shiz
+         class="@item.Slug" and this is so we dont sort the home since we made it :not(home) 
+         and class sorting for the table*@
+        $("table#pages tbody").sortable({
+            items: "tr:not(.home)",
+            placeholder: "ui-state-highlight",
+            update: function () {
+                let ids = $("table#pages tbody").sortable("serialize");
+                let url = "/admin/pages/reorder";
+                $.post(url, ids, function () { });
+            }
+        })
+    </script>
+
+}
