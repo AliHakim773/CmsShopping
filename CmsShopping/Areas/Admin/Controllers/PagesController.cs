@@ -1,5 +1,6 @@
 ﻿using CmsShopping.Infrastructure;
 using CmsShopping.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace CmsShopping.Areas.Admin.Controllers
 {
+    [Authorize(Roles = "Admin, Editor")]
     [Area("Admin")]
     public class PagesController : Controller
     {
@@ -30,8 +32,10 @@ namespace CmsShopping.Areas.Admin.Controllers
             if (page == null) return NotFound();
             return View(page);
         }
+
         // GET /admin/pages/create
         public IActionResult Create() => View();
+
         // POST /admin/pages/create
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -45,7 +49,7 @@ namespace CmsShopping.Areas.Admin.Controllers
                 var slug = await context.Pages.FirstOrDefaultAsync(x => x.Slug == page.Slug);
                 if (slug != null)
                 {
-                    ModelState.AddModelError("", "The title already exist.");
+                    ModelState.AddModelError("", "The title already exists.");
                     return View(page);
                 }
 
@@ -59,6 +63,7 @@ namespace CmsShopping.Areas.Admin.Controllers
 
             return View(page);
         }
+
         // GET /admin/pages/edit/id
         public async Task<IActionResult> Edit(int id)
         {

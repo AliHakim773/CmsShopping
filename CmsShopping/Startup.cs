@@ -1,7 +1,9 @@
 using CmsShopping.Infrastructure;
+using CmsShopping.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,10 +27,33 @@ namespace CmsShopping
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddMemoryCache();
+            services.AddSession(options =>
+            {
+                //options.IdleTimeout = TimeSpan.FromSeconds(2);
+                //options.IdleTimeout = TimeSpan.FromDays(2);
+            });
+
+            services.AddRouting(options =>
+            {
+                options.LowercaseUrls = true;
+            });
+
             services.AddControllersWithViews();
 
             services.AddDbContext<CmsShoppingContext>(options => options.UseSqlServer
               (Configuration.GetConnectionString("CmsShoppingContext")));
+
+            services.AddIdentity<AppUser, IdentityRole>(options =>
+                                {
+                                    options.Password.RequiredLength = 4;
+                                    options.Password.RequireNonAlphanumeric = false;
+                                    options.Password.RequireDigit = false;
+                                    options.Password.RequireUppercase = false;
+                                    options.Password.RequireLowercase = false;
+                                })
+                    .AddEntityFrameworkStores<CmsShoppingContext>()
+                    .AddDefaultTokenProviders();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -49,14 +74,24 @@ namespace CmsShopping
 
             app.UseRouting();
 
+            app.UseSession();
+
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
+                    "pages",
+                    "{slug?}",
+                    defaults: new { controller = "Pages" , action = "Page"});
+                endpoints.MapControllerRoute(
+                    "products",
+                    "products/{categorySlug}",
+                    defaults: new { controller = "Products" , action = "ProductsByCategory" });
+                endpoints.MapControllerRoute(
                     name: "areas",
-                    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
-          );
+                    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");

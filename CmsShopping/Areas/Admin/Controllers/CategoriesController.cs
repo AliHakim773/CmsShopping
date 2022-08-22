@@ -1,5 +1,6 @@
 ﻿using CmsShopping.Infrastructure;
 using CmsShopping.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace CmsShopping.Areas.Admin.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [Area("Admin")]
     public class CategoriesController : Controller
     {
@@ -38,7 +40,7 @@ namespace CmsShopping.Areas.Admin.Controllers
                 var slug = await context.Categories.FirstOrDefaultAsync(x => x.Slug == category.Slug);
                 if (slug != null)
                 {
-                    ModelState.AddModelError("", "The Category already exist.");
+                    ModelState.AddModelError("", "The Category already exists.");
                     return View(category);
                 }
 
